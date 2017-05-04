@@ -15,12 +15,21 @@ import org.json.JSONObject;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 
+import android.provider.Settings.Secure;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import android.widget.Toast;
+
 public class MainActivity extends AppCompatActivity {
 
     private Socket sock;
     private TextView textViewFromServer;
     private Button sendButton;
     private EditText editTextFromClient;
+    private EditText dateTextFromClient;
+    private EditText reminderTime;
+    private String android_id;
+    private String timeStamp;
 
     public MainActivity(){
         super();
@@ -34,6 +43,22 @@ public class MainActivity extends AppCompatActivity {
         textViewFromServer = (TextView) findViewById(R.id.ServerResponseTV);
         sendButton = (Button) findViewById(R.id.buttonSendToServer);
         editTextFromClient = (EditText) findViewById(R.id.nameInputText);
+        dateTextFromClient = (EditText) findViewById(R.id.dateText);
+        reminderTime = (EditText) findViewById(R.id.reminderTimeText);
+        android_id = Secure.getString(this.getContentResolver(),
+                Secure.ANDROID_ID);
+
+        Long tsLong = System.currentTimeMillis();
+        timeStamp = tsLong.toString();
+        SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy HH:mm");
+        Date resultdate = new Date(tsLong);
+        //System.out.println(sdf.format(resultdate));
+
+
+        //editTextFromClient.setHint("fill hint");
+        dateTextFromClient.setText(sdf.format(resultdate));
+        editTextFromClient.setText("usernamehere");
+        reminderTime.setText("98765");
 
         // Listen for button click to fire message from client to server
         sendButton.setOnClickListener(new View.OnClickListener(){
@@ -103,10 +128,17 @@ public class MainActivity extends AppCompatActivity {
         editTextFromClient.setText("");
 
         JSONObject data = new JSONObject();
-        data.put("firstname", message);
-        data.put("lastname", "client");
-        Log.d("CSdebug","attempt send: " + data.toString());
+        //data.put("firstname", message);
+        //data.put("lastname", "client");
 
+        data.put("user", message);
+        data.put("deviceID", android_id);
+        data.put("timestamp",timeStamp);
+        data.put("reminderTime",reminderTime.getText().toString().trim());
+
+        //Log.d("CSdebug","attempt send: " + data.toString());
+        Log.d("CSdebug","attempt send: " + data.toString());
+        Toast.makeText(this, "attemptLogin() " + data, Toast.LENGTH_LONG).show();
         // Attempt to send the message
         sock.emit("send message", data);
     }

@@ -23,19 +23,50 @@
         app:layout_constraintHorizontal_bias="0.502" />
 
     <EditText
-        android:id="@+id/nameInputText"
+        android:id="@+id/dateText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:ems="10"
         android:inputType="textPersonName"
-        android:text="Message"
+        android:hint="Message"
         app:layout_constraintTop_toTopOf="parent"
         android:layout_marginTop="25dp"
         android:layout_marginLeft="8dp"
         app:layout_constraintLeft_toLeftOf="parent"
         android:layout_marginRight="8dp"
         app:layout_constraintRight_toRightOf="parent" />
+
+    <EditText
+        android:id="@+id/reminderTimeText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:ems="10"
+        android:inputType="textPersonName"
+        android:hint="Message"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="57dp"
+        android:layout_marginLeft="8dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:layout_marginRight="8dp"
+        app:layout_constraintRight_toRightOf="parent" />
+
+    <EditText
+        android:id="@+id/nameInputText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:ems="10"
+        android:inputType="textPersonName"
+        android:hint="Message"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="87dp"
+        android:layout_marginLeft="8dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:layout_marginRight="8dp"
+        app:layout_constraintRight_toRightOf="parent" />
+
 
     <Button
         android:id="@+id/buttonSendToServer"

@@ -13,7 +13,6 @@ import io.socket.client.Socket;
 public class ChaisyncApplication extends Application{
 
     private Socket socket;
-
     {
         try {
             socket = IO.socket(Constants.SERVER_ADDRESS);
