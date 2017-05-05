@@ -28,6 +28,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView textViewFromServer;
     private TextView deviceID_display;
     private TextView dateTime_display;
+    private TextView database_display;
     private Button sendButton;
     private EditText name_display;
     private EditText reminderTime;
@@ -45,13 +46,15 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
+       //input fields and info set up and populate
         sharedPref = this.getSharedPreferences("com.Chaisync.sharedPref", Context.MODE_PRIVATE);
         deviceID_display = (TextView) findViewById(R.id.deviceId_textview);
         dateTime_display = (TextView) findViewById(R.id.dateText_textview);
         name_display = (EditText) findViewById(R.id.nameInputText);
         reminderTime = (EditText) findViewById(R.id.reminderTimeText);
-        sendButton = (Button) findViewById(R.id.buttonSendToServer);
         textViewFromServer = (TextView) findViewById(R.id.ServerResponseTV);
+        database_display = (TextView) findViewById(R.id.databaseView);
         android_id = Secure.getString(this.getContentResolver(),
                 Secure.ANDROID_ID);
 
@@ -61,13 +64,18 @@ public class MainActivity extends AppCompatActivity {
         Date resultdate = new Date(tsLong);
         //System.out.println(sdf.format(resultdate));
 
-
         deviceID_display.setText("Device ID: " + android_id);
-        dateTime_display.setText(sdf.format(resultdate));
+        dateTime_display.setText("Date/Time: " + sdf.format(resultdate));
         name_display.setText("Username Here");
         reminderTime.setText("December 25th 8:00AM");
+        readFromLocalDb();
+
+        name_display.setSelectAllOnFocus(true);
+        reminderTime.setSelectAllOnFocus(true);
+        name_display.requestFocus();
 
         // Listen for button click to fire message from client to server
+        sendButton = (Button) findViewById(R.id.buttonSendToServer);
         sendButton.setOnClickListener(new View.OnClickListener(){
           public void onClick(View v){
               try {
@@ -81,12 +89,23 @@ public class MainActivity extends AppCompatActivity {
           }
         });
 
+        //refresh button function
+        Button refresher = (Button) findViewById(R.id.buttonRefresh);
+        refresher.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String my_deviceID = sharedPref.getString("deviceID", "");
+                String my_user = sharedPref.getString("user", "");
+                String my_reminder = sharedPref.getString("reminder", "");
+                String my_timestamp = sharedPref.getString("timestamp", "");
+                database_display.setText("Local Database: \n" + my_deviceID + " "
+                        + my_user + " " + my_reminder + " " + my_timestamp);
+            }
+        });
+
         // Start socket.io
         ChaisyncApplication app = (ChaisyncApplication) getApplication();
         sock = app.getSocket();
-
-
-        readFromLocalDb();
 
         // Configure socket.io events
         sock.on(Socket.EVENT_CONNECT, onConnect);
@@ -109,15 +128,30 @@ public class MainActivity extends AppCompatActivity {
 
                     String firstname;
                     String lastname;
+                    String deviceID;
+                    String user;
+                    String reminder;
+                    String timestamp;
+
                     try {
                         firstname = data.getString("firstname");
                         lastname = data.getString("lastname");
+
+                        deviceID = data.getString("deviceID");
+                        user = data.getString("user");
+                        reminder = data.getString("reminder");
+                        timestamp = data.getString("timestamp");
+
                     } catch (JSONException e) {
                         Log.d("CSdebug", "JSON.getString error: " + data);
                         return;
                     }
-                    textViewFromServer.setText(firstname+ " " + lastname);
+                    textViewFromServer.setText(deviceID+" "+user+" "+reminder+" "+timestamp);
                     //saveToLocalDb(firstname+","+lastname);
+                    saveDeviceIdToLocalDb(android_id);
+                    saveUserToLocalDb(user);
+                    saveReminderToLocalDb(reminder);
+                    saveTimeToLocalDb(timeStamp);
                 }
             });
         }
@@ -125,12 +159,18 @@ public class MainActivity extends AppCompatActivity {
 
     private void readFromLocalDb(){
         //Log.d("CSdebug","readFromLocalDb() - attempt");
-        String my_info = sharedPref.getString("my_data", "");
-        Log.d("CSdebug","readFromLocalDb() " + my_info);
-        Toast.makeText(this, "readFromLocalDb() " + my_info, Toast.LENGTH_LONG).show();
-        deviceID_display.setText("Database stuff: " + my_info);
+        String my_deviceID = sharedPref.getString("deviceID", "");
+        String my_user = sharedPref.getString("user", "");
+        String my_reminder = sharedPref.getString("reminder", "");
+        String my_timestamp = sharedPref.getString("timestamp", "");
+
+        String readTotal = my_deviceID + " " + my_user + " " + my_reminder + " " + my_timestamp;
+        Log.d("CSdebug","readFromLocalDb() " + readTotal);
+        Toast.makeText(this, "readFromLocalDb() " + readTotal, Toast.LENGTH_LONG).show();
+        //deviceID_display.setText("Database stuff: " + readTotal);
     }
 
+    /*
     private void saveToLocalDb(String data) {
         //SharedPreferences sharedPref = this.getSharedPreferences("com.Chaisync.sharedPref", Context.MODE_PRIVATE);
         //if (sharedPref.getString("my_data", "").length() == 0) {
@@ -141,11 +181,31 @@ public class MainActivity extends AppCompatActivity {
         Log.d("CSdebug","saveToLocalDb() " + data.toString());
         Toast.makeText(this, "saveToLocalDb() " + data, Toast.LENGTH_LONG).show();
     }
+    */
 
-    private void saveUserToLocalDb() {
-
+    private void saveDeviceIdToLocalDb(String deviceID) {
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString("deviceID", deviceID);
+        editor.commit();
     }
 
+    private void saveUserToLocalDb(String user) {
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString("user", user);
+        editor.commit();
+    }
+
+    private void saveReminderToLocalDb(String reminder) {
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString("reminder", reminder);
+        editor.commit();
+    }
+
+    private void saveTimeToLocalDb(String timestamp) {
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString("timestamp", timestamp);
+        editor.commit();
+    }
 
     private void attemptSend() throws JSONException{
         // Put the client message into a JSON object
@@ -172,6 +232,10 @@ public class MainActivity extends AppCompatActivity {
         // Attempt to send the message
         sock.emit("send message", data);
         //saveToLocalDb(android_id+","+username+","+reminderTimeText+","+timeStamp);
+        saveDeviceIdToLocalDb(android_id);
+        saveUserToLocalDb(username);
+        saveReminderToLocalDb(reminderTimeText);
+        saveTimeToLocalDb(timeStamp);
 
     }
 
