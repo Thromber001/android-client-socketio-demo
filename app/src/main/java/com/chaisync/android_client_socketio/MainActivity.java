@@ -1,5 +1,7 @@
 package com.chaisync.android_client_socketio;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -24,9 +26,10 @@ public class MainActivity extends AppCompatActivity {
 
     private Socket sock;
     private TextView textViewFromServer;
+    private TextView deviceID_display;
+    private TextView dateTime_display;
     private Button sendButton;
     private EditText editTextFromClient;
-    private EditText dateTextFromClient;
     private EditText reminderTime;
     private String android_id;
     private String timeStamp;
@@ -40,11 +43,12 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        textViewFromServer = (TextView) findViewById(R.id.ServerResponseTV);
-        sendButton = (Button) findViewById(R.id.buttonSendToServer);
+        deviceID_display = (TextView) findViewById(R.id.deviceId_textview);
+        dateTime_display = (TextView) findViewById(R.id.dateText_textview);
         editTextFromClient = (EditText) findViewById(R.id.nameInputText);
-        dateTextFromClient = (EditText) findViewById(R.id.dateText);
         reminderTime = (EditText) findViewById(R.id.reminderTimeText);
+        sendButton = (Button) findViewById(R.id.buttonSendToServer);
+        textViewFromServer = (TextView) findViewById(R.id.ServerResponseTV);
         android_id = Secure.getString(this.getContentResolver(),
                 Secure.ANDROID_ID);
 
@@ -55,10 +59,10 @@ public class MainActivity extends AppCompatActivity {
         //System.out.println(sdf.format(resultdate));
 
 
-        //editTextFromClient.setHint("fill hint");
-        dateTextFromClient.setText(sdf.format(resultdate));
-        editTextFromClient.setText("usernamehere");
-        reminderTime.setText("98765");
+        deviceID_display.setText("Device ID: " + android_id);
+        dateTime_display.setText(sdf.format(resultdate));
+        editTextFromClient.setText("Username Here");
+        reminderTime.setText("December 25th 8:00AM");
 
         // Listen for button click to fire message from client to server
         sendButton.setOnClickListener(new View.OnClickListener(){
@@ -77,6 +81,9 @@ public class MainActivity extends AppCompatActivity {
         // Start socket.io
         ChaisyncApplication app = (ChaisyncApplication) getApplication();
         sock = app.getSocket();
+
+
+
 
         // Configure socket.io events
         sock.on(Socket.EVENT_CONNECT, onConnect);
@@ -113,10 +120,22 @@ public class MainActivity extends AppCompatActivity {
                         return;
                     }
                     textViewFromServer.setText(firstname+ " " + lastname);
+                    //saveToLocalDb(firstname+","+lastname);
                 }
             });
         }
     };
+
+    private void saveToLocalDb(String data) {
+        SharedPreferences sharedPref = this.getSharedPreferences("com.Chaisync.sharedPref", Context.MODE_PRIVATE);
+        //if (sharedPref.getString("my_data", "").length() == 0) {
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString("my_data", data);
+        editor.commit();
+        //}
+        Toast.makeText(this, "saveToLocalDb() " + data, Toast.LENGTH_LONG).show();
+    }
+
 
     private void attemptSend() throws JSONException{
         // Put the client message into a JSON object
@@ -128,19 +147,20 @@ public class MainActivity extends AppCompatActivity {
         editTextFromClient.setText("");
 
         JSONObject data = new JSONObject();
-        //data.put("firstname", message);
-        //data.put("lastname", "client");
+        data.put("firstname", message);
+        data.put("lastname", "client");
+        String reminderTimeText = reminderTime.getText().toString().trim();
 
-        data.put("user", message);
-        data.put("deviceID", android_id);
-        data.put("timestamp",timeStamp);
-        data.put("reminderTime",reminderTime.getText().toString().trim());
+        //data.put("deviceID", android_id);
+        //data.put("user", message);
+        //data.put("reminderTime",reminderTimeText);
+        //data.put("timestamp",timeStamp);
 
-        //Log.d("CSdebug","attempt send: " + data.toString());
         Log.d("CSdebug","attempt send: " + data.toString());
         Toast.makeText(this, "attemptLogin() " + data, Toast.LENGTH_LONG).show();
         // Attempt to send the message
         sock.emit("send message", data);
+        //saveToLocalDb(message+","+android_id+","+timeStamp+","+reminderTimeText);
     }
 
     private Emitter.Listener onConnect = new Emitter.Listener() {
