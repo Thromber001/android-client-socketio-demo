@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
         dateTime_display.setText("Date/Time: " + sdf.format(resultdate));
         name_display.setText("Username Here");
         reminderTime.setText("December 25th 8:00AM");
-        readFromLocalDb();
+        //readFromLocalDb();
 
         name_display.setSelectAllOnFocus(true);
         reminderTime.setSelectAllOnFocus(true);
@@ -158,7 +158,6 @@ public class MainActivity extends AppCompatActivity {
     };
 
     private void readFromLocalDb(){
-        //Log.d("CSdebug","readFromLocalDb() - attempt");
         String my_deviceID = sharedPref.getString("deviceID", "");
         String my_user = sharedPref.getString("user", "");
         String my_reminder = sharedPref.getString("reminder", "");
@@ -219,7 +218,6 @@ public class MainActivity extends AppCompatActivity {
         JSONObject data = new JSONObject();
         //data.put("firstname", message);
         //data.put("lastname", "client");
-
 
         data.put("deviceID", android_id);
         data.put("user", username);
