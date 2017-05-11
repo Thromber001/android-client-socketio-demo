@@ -2,6 +2,7 @@ package com.chaisync.android_client_socketio;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -36,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
     private String timeStamp;
     //SharedPreferences sharedPref = this.getSharedPreferences("com.Chaisync.sharedPref", Context.MODE_PRIVATE);
     SharedPreferences sharedPref;
+    Context sync_context;
 
     public MainActivity(){
         super();
@@ -48,7 +50,13 @@ public class MainActivity extends AppCompatActivity {
 
 
        //input fields and info set up and populate
-        sharedPref = this.getSharedPreferences("com.Chaisync.sharedPref",Context.MODE_WORLD_WRITEABLE /*Context.MODE_PRIVATE*/);
+        try {
+            sync_context = createPackageContext("com.chaisync.android_client_socketio", 0);
+            sharedPref = sync_context.getSharedPreferences("com.Chaisync.sharedPref", Context.CONTEXT_IGNORE_SECURITY | Context.MODE_MULTI_PROCESS);
+        } catch (PackageManager.NameNotFoundException e) {
+            Log.d("CSdebug", "NameNotFoundException");
+            Toast.makeText(this, "database sync error!!", Toast.LENGTH_LONG).show();
+        }
         deviceID_display = (TextView) findViewById(R.id.deviceId_textview);
         dateTime_display = (TextView) findViewById(R.id.dateText_textview);
         name_display = (EditText) findViewById(R.id.nameInputText);
@@ -94,6 +102,14 @@ public class MainActivity extends AppCompatActivity {
         refresher.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                try {
+                    sync_context = createPackageContext("com.chaisync.android_client_socketio", 0);
+                    sharedPref = sync_context.getSharedPreferences("com.Chaisync.sharedPref", Context.CONTEXT_IGNORE_SECURITY | Context.MODE_MULTI_PROCESS);
+                } catch (PackageManager.NameNotFoundException e) {
+                    Log.d("CSdebug", "NameNotFoundException");
+                    //Toast.makeText(this, "database sync error!!", Toast.LENGTH_LONG).show();
+                }
+
                 String my_deviceID = sharedPref.getString("deviceID", "");
                 String my_user = sharedPref.getString("user", "");
                 String my_reminder = sharedPref.getString("reminder", "");
@@ -144,6 +160,7 @@ public class MainActivity extends AppCompatActivity {
 
                     } catch (JSONException e) {
                         Log.d("CSdebug", "JSON.getString error: " + data);
+
                         return;
                     }
                     textViewFromServer.setText(deviceID+" "+user+" "+reminder+" "+timestamp);
