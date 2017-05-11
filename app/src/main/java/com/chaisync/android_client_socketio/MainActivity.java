@@ -48,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
 
 
        //input fields and info set up and populate
-        sharedPref = this.getSharedPreferences("com.Chaisync.sharedPref", Context.MODE_PRIVATE);
+        sharedPref = this.getSharedPreferences("com.Chaisync.sharedPref",Context.MODE_WORLD_WRITEABLE /*Context.MODE_PRIVATE*/);
         deviceID_display = (TextView) findViewById(R.id.deviceId_textview);
         dateTime_display = (TextView) findViewById(R.id.dateText_textview);
         name_display = (EditText) findViewById(R.id.nameInputText);
@@ -185,25 +185,25 @@ public class MainActivity extends AppCompatActivity {
     private void saveDeviceIdToLocalDb(String deviceID) {
         SharedPreferences.Editor editor = sharedPref.edit();
         editor.putString("deviceID", deviceID);
-        editor.commit();
+        editor.apply();
     }
 
     private void saveUserToLocalDb(String user) {
         SharedPreferences.Editor editor = sharedPref.edit();
         editor.putString("user", user);
-        editor.commit();
+        editor.apply();
     }
 
     private void saveReminderToLocalDb(String reminder) {
         SharedPreferences.Editor editor = sharedPref.edit();
         editor.putString("reminder", reminder);
-        editor.commit();
+        editor.apply();
     }
 
     private void saveTimeToLocalDb(String timestamp) {
         SharedPreferences.Editor editor = sharedPref.edit();
         editor.putString("timestamp", timestamp);
-        editor.commit();
+        editor.apply();
     }
 
     private void attemptSend() throws JSONException{
